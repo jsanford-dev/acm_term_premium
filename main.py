@@ -1,7 +1,7 @@
-from clean_gsw_data import clean_gsw_data
+from clean_gsw_data import generate_nss_params
 
 def main():
-    clean_gsw_data()
+    generate_nss_params()
 
 if __name__ == '__main__':
     main()

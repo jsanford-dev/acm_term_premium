@@ -1,4 +1,5 @@
 import pandas as pd
+import yaml
 
 def fetch_gsw_data(path):
     """Fetches and formats GSW data from data folder."""
@@ -26,12 +27,16 @@ def filter_dates(df, date_begin, date_end):
     return df
 
 
-def clean_gsw_data():
-    # User inputs
-    data_path  = "data/raw/gsw_params.csv"
-    output_path = 'data/clean/nss_params.csv'
-    date_begin = '1987-01-31'
-    date_end = '2011-12-31'
+def generate_nss_params():
+    
+    # Load user inputs
+    with open("config.yaml", "r") as file:
+        config = yaml.safe_load(file)
+
+    data_path  = config["gsw_params_path"]
+    output_path = config["nss_params_path"]
+    date_begin = config["date_begin"]
+    date_end = config["date_end"]
 
     df = fetch_gsw_data(data_path)
     df = filter_dates(df, date_begin, date_end)
@@ -39,4 +44,4 @@ def clean_gsw_data():
     df.to_csv(output_path)
 
 if __name__ == "__main__":
-    clean_gsw_data()
+    generate_nss_params()
