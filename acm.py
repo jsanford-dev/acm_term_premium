@@ -4,10 +4,15 @@ import yaml
 
 class ACM():
     def __init__(self):
+        # Set up.
         self.config = self.load_config()
-        self.maturities = np.asarray(self.config["maturity_array"], dtype=int)
+        self.maturities = self.load_maturities()
 
+        # Define dimensions and parameters.
         self.K = self.config["K"]
+        self.N = len(self.config["maturity_array"])
+        self.T = None
+        self.max_maturity = max(self.maturities)
 
     def load_config(self):
         """Loads user inputs from config.yaml."""
@@ -16,6 +21,22 @@ class ACM():
             config = yaml.safe_load(file)
 
         return config
+    
+    def load_maturities(self):
+        """ Loads maturities and ensures 1 month rate in array."""
+
+        maturities = np.asarray(self.config["maturity_array"], dtype=int)
+        maturities = np.sort(maturities)
+        
+        if maturities[0] == 1:
+            pass
+        elif maturities[0] != 1 and maturities[0] >= 2:
+            maturities = np.insert(maturities, 0, 1)
+        else:
+            raise ValueError("Please ensure that the maturity array" \
+            " starts with a value than 1.")
+
+        return maturities
     
     def nss(self, maturity, beta_0, beta_1, beta_2, beta_3, tau_1, tau_2):
         """Nelson-Siegel-Svensson Model."""
@@ -61,6 +82,9 @@ class ACM():
         rf = -log_prices[log_prices.columns[0]]
         log_prices = log_prices.drop(columns=1)
 
+        # Define dimensions of dimension T.
+        self.T = len(log_prices.index)
+
         # Derive first component of eq. 6.
         self.maturities = self.maturities[1:] # remove 1 month rate from array.
         adj_maturities = [x - 1 for x in self.maturities]
@@ -75,12 +99,13 @@ class ACM():
 
         # excess returns - per eq. 6.
         rx = log_prices_t1 - log_prices - rf
-        print(self.K)
+        rx = rx.T # Paper wants N x T per page 6.
+        assert rx.shape == (self.N, self.T), f"rx has shape {rx.shape}, " +\
+            "expected (N, T)."
 
         return rx
 
     
-
     def acm_model(self):
         """ Runs ACM model. """
 
@@ -98,7 +123,7 @@ class ACM():
         self.yields = self.generate_yields(nss_params, self.maturities)
         self.yields = self.yields.drop(self.yields.index[-1])
 
-        self.generate_excess_returns(nss_params)
+        rx = self.generate_excess_returns(nss_params)
 
         # Step 1, 2, 3 go here later.
 
