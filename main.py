@@ -5,7 +5,7 @@ def main():
     generate_nss_params()
 
     acm = ACM()
-    acm.generate_term_premium()
+    acm.acm_model()
 
 if __name__ == '__main__':
     main()

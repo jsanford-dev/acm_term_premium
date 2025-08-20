@@ -4,12 +4,15 @@ import yaml
 def fetch_gsw_data(path):
     """Fetches and formats GSW data from data folder."""
 
-    df = pd.read_csv(path, skiprows=9, header=0)
+    df = pd.read_csv(
+        path,
+        skiprows=9, 
+        header=0,
+        parse_dates=["Date"],
+        dayfirst=True
+    )
     nss_params = ["Date", "BETA0", "BETA1", "BETA2", "BETA3", "TAU1", "TAU2"]
     df = df[nss_params]
-
-    # convert types
-    df["Date"] = pd.to_datetime(df["Date"], dayfirst=True, errors="coerce")
     
     return df
 
@@ -21,7 +24,8 @@ def filter_dates(df, date_begin, date_end):
     df = df.resample("ME").last()
     start_eom = pd.to_datetime(date_begin) + pd.offsets.MonthEnd(0)
     end_eom = pd.to_datetime(date_end) + pd.offsets.MonthEnd(0)
-    df = df.loc[start_eom:end_eom]
+    end_eom_plus1 = end_eom + pd.offsets.MonthEnd(1)
+    df = df.loc[start_eom:end_eom_plus1]
     df = df.ffill()
 
     return df
