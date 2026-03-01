@@ -126,6 +126,6 @@ class ACM():
         rx = self.generate_excess_returns(nss_params)
 
         # Step 1, 2, 3 go here later.
-
+        print(rx)
 
         return
